@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:title="@string/radius">
+        <menu>
+            <group android:checkableBehavior="single">
+
+                <item
+                    android:id="@+id/find_3km"
+                    android:title="@string/_3_km" />
+                <item
+                    android:id="@+id/find_5km"
+                    android:title="@string/_5_km" />
+                <item
+                    android:id="@+id/find_10km"
+                    android:title="@string/_10_km" />
+                <item
+                    android:id="@+id/find_20km"
+                    android:title="@string/_20_km" />
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="@string/map_type">
+        <menu>
+            <group android:checkableBehavior="single">
+
+
+                <item
+                    android:id="@+id/map_type_normal"
+                    android:title="@string/normal_default" />
+                <item
+                    android:id="@+id/map_type_hybrid"
+                    android:title="@string/hybrid" />
+                <item
+                    android:id="@+id/map_type_none"
+                    android:title="@string/none" />
+                <item
+                    android:id="@+id/map_type_satellite"
+                    android:title="@string/satellite" />
+                <item
+                    android:id="@+id/map_type_terrain"
+                    android:title="@string/terrain" />
+
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="@string/communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="@string/share" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="@string/send" />
+        </menu>
+    </item>
+</menu>
