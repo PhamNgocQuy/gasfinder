@@ -27,9 +27,6 @@
             android:value="AIzaSyC-cAWMmqgEU8rpKgwR3B_qakvtomEo6i4" />
 
         <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" />
-        <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme">

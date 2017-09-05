@@ -181,7 +181,7 @@ class LoadData extends AsyncTask<String, Void, String> {
     }
 
     private String getDataFormServer(String link) {
-        String json = "";
+        StringBuilder json = new StringBuilder();
         try {
             URL url = new URL(link);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -195,7 +195,7 @@ class LoadData extends AsyncTask<String, Void, String> {
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String line = bufferedReader.readLine();
                 while (line != null) {
-                    json += line;
+                    json.append(line);
                     line = bufferedReader.readLine();
                 }
                 inputStreamReader.close();
@@ -207,7 +207,7 @@ class LoadData extends AsyncTask<String, Void, String> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return json;
+        return json.toString();
     }
 }
 

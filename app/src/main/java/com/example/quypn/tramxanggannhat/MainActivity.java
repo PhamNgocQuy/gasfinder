@@ -29,11 +29,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.ads.AbstractAdListener;
 import com.facebook.ads.Ad;
+import com.facebook.ads.AdError;
+import com.facebook.ads.AdListener;
+import com.facebook.ads.AdSize;
+import com.facebook.ads.AdView;
 import com.facebook.ads.NativeAd;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -72,7 +77,8 @@ public class MainActivity extends AppCompatActivity implements
     private ArrayList<Gas_Location> gas_Station_Data;
     private Geocoder geocoder;
     private FloatingActionButton fab;
-    private NativeAd nativeAd;
+    private AdView adView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +86,10 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         CheckPermission();
 
+        RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.adViewContainer);
+        adView = new AdView(this, "282331202206878_337239126716085", AdSize.BANNER_320_50);
+        relativeLayout.addView(adView);
+        adView.loadAd();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -102,8 +112,6 @@ public class MainActivity extends AppCompatActivity implements
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
-
-
         }
 
         init();
@@ -133,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(map);
         mapFragment.getMapAsync(this);
+
 
     }
 
@@ -234,9 +243,14 @@ public class MainActivity extends AppCompatActivity implements
         googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
-                Config.lat = googleMap.getMyLocation().getLatitude();
-                Config.lng = googleMap.getMyLocation().getLongitude();
-                fab.show();
+                if (googleMap.getMyLocation() != null) {
+                    Config.lat = googleMap.getMyLocation().getLatitude();
+                    Config.lng = googleMap.getMyLocation().getLongitude();
+                    fab.show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Connection is slow, please wait", Toast.LENGTH_SHORT).show();
+                }
+
                 return false;
             }
         });
@@ -252,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private boolean HasPermission() {
-        int res = 0;
+        int res;
         String[] permission = new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION};
         for (String i : permission) {
             res = checkCallingOrSelfPermission(i);
@@ -314,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements
 
     public void Search_Station() {
 
-        if (!Config.pTheard) {
+        if (!Config.pTheard && mMap.getMyLocation() != null) {
             String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=" +
                     mMap.getMyLocation().getLatitude() +
                     "," +
@@ -326,6 +340,8 @@ public class MainActivity extends AppCompatActivity implements
             mMap.clear();
             gas_Station_Data = new ArrayList<>();
             new LoadData(fab, MainActivity.this, geocoder, gas_Station_Data, mMap).execute(url);
+        } else {
+            Toast.makeText(this, "Connection is slow, please wait", Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -346,41 +362,6 @@ public class MainActivity extends AppCompatActivity implements
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    private void showNativeAd() {
-        nativeAd = new NativeAd(this, "282331202206878_284183348688330");
-        nativeAd.setAdListener(new AbstractAdListener() {
-            @Override
-            public void onAdLoaded(Ad ad) {
-                if (ad != nativeAd) {
-                    return;
-                }
-
-                String titleForAd = nativeAd.getAdTitle();
-                NativeAd.Image coverImage = nativeAd.getAdCoverImage();
-                NativeAd.Image iconForAd = nativeAd.getAdIcon();
-                String socialContextForAd = nativeAd.getAdSocialContext();
-                String titleForAdButton = nativeAd.getAdCallToAction();
-                String textForAdBody = nativeAd.getAdBody();
-                NativeAd.Rating appRatingForAd = nativeAd.getAdStarRating();
-
-                // Add code here to create a custom view that uses the ad properties
-                // For example:
-                LinearLayout nativeAdContainer = new LinearLayout(MainActivity.this);
-                TextView titleLabel = new TextView(MainActivity.this);
-                titleLabel.setText(titleForAd);
-                nativeAdContainer.addView(titleLabel);
-
-
-                // Add the ad to your layout
-                LinearLayout mainContainer = (LinearLayout) findViewById(R.id.MainContainer);
-                mainContainer.addView(nativeAdContainer);
-
-                // Register the native ad view with the native ad instance
-                nativeAd.registerViewForInteraction(nativeAdContainer);
-            }
-        });
-        nativeAd.loadAd();
-    }
 
     private void TuiDangODau() {
 
@@ -459,8 +440,8 @@ public class MainActivity extends AppCompatActivity implements
 
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(30*1000);
-        locationRequest.setFastestInterval(5*1000);
+        locationRequest.setInterval(30 * 1000);
+        locationRequest.setFastestInterval(5 * 1000);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest);
@@ -468,7 +449,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
         PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,builder.build());
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
 
         result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
             @Override
@@ -477,8 +458,7 @@ public class MainActivity extends AppCompatActivity implements
                 final Status status = locationSettingsResult.getStatus();
                 final LocationSettingsStates state = locationSettingsResult.getLocationSettingsStates();
 
-                switch (status.getStatusCode())
-                {
+                switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         // All location settings are satisfied. The client can initialize location
                         // requests here.
